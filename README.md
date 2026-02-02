@@ -25,6 +25,13 @@ Link: [03-n8n](https://github.com/zanets/03-n8n)
 - n8n
 - Docker, Docker Compose
 - Telegeam Bot
-- ollama API
-- Gemini API
+- DuckDNS
 
+## 04-n8n-zrok 
+
+Link: [04-n8n-zrok](https://github.com/zanets/04-n8n-zrok)
+
+- n8n
+- Docker, Docker Compose
+- Telegeam Bot
+- zrok
