@@ -2,7 +2,7 @@
 
 ## 01-simple-FastAPI
 
-Link: ![01-simple-FastAPI](git@github.com:zanets/01-simple-FastAPI.git)
+Link: ![01-simple-FastAPI](https://github.com/zanets/01-simple-FastAPI)
 
 - Python
 - Pydantic data type validation
@@ -12,7 +12,7 @@ Link: ![01-simple-FastAPI](git@github.com:zanets/01-simple-FastAPI.git)
 
 ## 03-n8n 
 
-Link: ![03-n8n](git@github.com:zanets/03-n8n.git)
+Link: ![03-n8n](https://github.com/zanets/03-n8n)
 
 - n8n
 - Docker, Docker Compose
