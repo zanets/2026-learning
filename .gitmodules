@@ -1,0 +1,12 @@
+[submodule "01-simple-FastAPI"]
+	path = 01-simple-FastAPI
+	url = git@github.com:zanets/01-simple-FastAPI.git
+[submodule "02-food-analyzer"]
+	path = 02-food-analyzer
+	url = git@github.com:zanets/02-food-analyzer.git
+[submodule "03-n8n"]
+	path = 03-n8n
+	url = git@github.com:zanets/03-n8n.git
+[submodule "04-n8n-zrok"]
+	path = 04-n8n-zrok
+	url = git@github.com:zanets/04-n8n-zrok.git
