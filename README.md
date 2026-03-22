@@ -27,7 +27,7 @@ Link: [03-n8n](https://github.com/zanets/03-n8n)
 - Telegeam Bot
 - DuckDNS
 
-## 04-n8n-zrok 
+## 04-n8n-zrok
 
 Link: [04-n8n-zrok](https://github.com/zanets/04-n8n-zrok)
 
@@ -35,3 +35,17 @@ Link: [04-n8n-zrok](https://github.com/zanets/04-n8n-zrok)
 - Docker, Docker Compose
 - Telegeam Bot
 - zrok
+
+## 05-local-network-discover
+
+- Python
+- 區域網路設備掃描（ARP / Ping）
+
+## 06-network-discover
+
+- Flutter macOS Desktop
+- Riverpod 狀態管理
+- go_router 路由
+- Hive 本地儲存
+- 區域網路設備掃描、Port 掃描、HTTP Header 檢視、網路拓撲視覺化
+- 多語言支援（繁中 / 英）
