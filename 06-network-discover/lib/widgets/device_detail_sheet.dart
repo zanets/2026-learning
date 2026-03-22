@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/network_device.dart';
 import '../models/port_info.dart';
 import '../providers/port_scan_provider.dart';
+import '../providers/http_header_provider.dart';
+import '../services/http_header_service.dart';
 import '../data/port_descriptions.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
@@ -63,6 +65,7 @@ class _DeviceDetailSheetState extends ConsumerState<DeviceDetailSheet>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scanState = ref.watch(portScanProvider(widget.device.ip));
+    final httpState = ref.watch(httpHeaderProvider(widget.device.ip));
     final device = widget.device;
 
     return Container(
@@ -163,30 +166,63 @@ class _DeviceDetailSheetState extends ConsumerState<DeviceDetailSheet>
           const Divider(color: AppColors.border, height: 20),
           // Body
           Expanded(
-            child: scanState.isScanning
-                ? _ScanningView(
-                    progress: scanState.progress,
-                    remaining: scanState.remaining,
-                    ports: scanState.ports,
-                    spinController: _spinController,
-                    logs: scanState.logs,
-                    l10n: l10n,
-                  )
-                : scanState.ports.isNotEmpty
-                    ? _PortListView(
-                        ports: scanState.ports,
-                        cached: scanState.cached,
-                        logs: scanState.logs,
-                        l10n: l10n,
-                      )
-                    : scanState.cached != null
-                        ? _PortListView(
-                            ports: scanState.cached!.ports,
-                            cached: scanState.cached,
-                            logs: scanState.logs,
-                            l10n: l10n,
-                          )
-                        : _EmptyPortView(l10n: l10n),
+            child: DefaultTabController(
+              length: 2,
+              child: Column(
+                children: [
+                  const TabBar(
+                    tabs: [
+                      Tab(text: 'Ports'),
+                      Tab(text: 'HTTP Headers'),
+                    ],
+                    labelColor: AppColors.accent,
+                    unselectedLabelColor: AppColors.textSecondary,
+                    indicatorColor: AppColors.accent,
+                    dividerColor: AppColors.border,
+                  ),
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        // ── Port scan tab ──
+                        scanState.isScanning
+                            ? _ScanningView(
+                                progress: scanState.progress,
+                                remaining: scanState.remaining,
+                                ports: scanState.ports,
+                                spinController: _spinController,
+                                logs: scanState.logs,
+                                l10n: l10n,
+                              )
+                            : scanState.ports.isNotEmpty
+                                ? _PortListView(
+                                    ports: scanState.ports,
+                                    cached: scanState.cached,
+                                    logs: scanState.logs,
+                                    l10n: l10n,
+                                  )
+                                : scanState.cached != null
+                                    ? _PortListView(
+                                        ports: scanState.cached!.ports,
+                                        cached: scanState.cached,
+                                        logs: scanState.logs,
+                                        l10n: l10n,
+                                      )
+                                    : _EmptyPortView(l10n: l10n),
+
+                        // ── HTTP headers tab ──
+                        _HttpHeaderView(
+                          ip: device.ip,
+                          state: httpState,
+                          onFetch: () => ref
+                              .read(httpHeaderProvider(device.ip).notifier)
+                              .fetch(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -582,6 +618,257 @@ class _RiskBadge extends StatelessWidget {
       child: Text(
         _label(),
         style: TextStyle(color: color, fontSize: 10),
+      ),
+    );
+  }
+}
+
+// ── HTTP Headers view ─────────────────────────────────────────────────────────
+
+class _HttpHeaderView extends StatelessWidget {
+  final String ip;
+  final HttpHeaderState state;
+  final VoidCallback onFetch;
+
+  const _HttpHeaderView({
+    required this.ip,
+    required this.state,
+    required this.onFetch,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (state.isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.accent),
+      );
+    }
+
+    if (state.results.isEmpty && state.error == null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.http, size: 48, color: AppColors.textSecondary),
+            const SizedBox(height: 12),
+            const Text(
+              'Probe HTTP/HTTPS ports for server headers',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: onFetch,
+              icon: const Icon(Icons.send_outlined, size: 16),
+              label: const Text('Fetch Headers'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.accent,
+                side: const BorderSide(color: AppColors.border),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+          child: Row(
+            children: [
+              Text(
+                '${state.results.length} port(s) responded',
+                style: const TextStyle(
+                    color: AppColors.textSecondary, fontSize: 12),
+              ),
+              const Spacer(),
+              TextButton.icon(
+                onPressed: onFetch,
+                icon: const Icon(Icons.refresh, size: 14),
+                label: const Text('Re-fetch', style: TextStyle(fontSize: 12)),
+                style: TextButton.styleFrom(
+                    foregroundColor: AppColors.accent,
+                    padding: EdgeInsets.zero),
+              ),
+            ],
+          ),
+        ),
+        if (state.error != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Text(state.error!,
+                style: const TextStyle(
+                    color: AppColors.danger, fontSize: 12)),
+          ),
+        Expanded(
+          child: state.results.isEmpty
+              ? const Center(
+                  child: Text(
+                    'No web service responded',
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  itemCount: state.results.length,
+                  itemBuilder: (_, i) =>
+                      _HeaderResultCard(result: state.results[i]),
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HeaderResultCard extends StatefulWidget {
+  final HttpHeaderResult result;
+  const _HeaderResultCard({required this.result});
+
+  @override
+  State<_HeaderResultCard> createState() => _HeaderResultCardState();
+}
+
+class _HeaderResultCardState extends State<_HeaderResultCard> {
+  bool _expanded = true;
+
+  @override
+  Widget build(BuildContext context) {
+    final r = widget.result;
+    final scheme = r.https ? 'HTTPS' : 'HTTP';
+    final statusColor = r.statusCode < 300
+        ? AppColors.success
+        : r.statusCode < 400
+            ? AppColors.info
+            : AppColors.warn;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () => setState(() => _expanded = !_expanded),
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: (r.https ? AppColors.success : AppColors.info)
+                          .withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      scheme,
+                      style: TextStyle(
+                        color: r.https ? AppColors.success : AppColors.info,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    ':${r.port}',
+                    style: const TextStyle(
+                      color: AppColors.accent,
+                      fontFamily: 'monospace',
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '${r.statusCode}',
+                      style: TextStyle(
+                          color: statusColor,
+                          fontSize: 11,
+                          fontFamily: 'monospace'),
+                    ),
+                  ),
+                  const Spacer(),
+                  if (r.headers['server'] != null)
+                    Flexible(
+                      child: Text(
+                        r.headers['server']!,
+                        style: const TextStyle(
+                            color: AppColors.textSecondary, fontSize: 11),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    _expanded ? Icons.expand_less : Icons.expand_more,
+                    size: 16,
+                    color: AppColors.textSecondary,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_expanded && r.headers.isNotEmpty) ...[
+            const Divider(color: AppColors.border, height: 1),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                children: r.headers.entries.map((e) => _HeaderRow(e)).toList(),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _HeaderRow extends StatelessWidget {
+  final MapEntry<String, String> entry;
+  const _HeaderRow(this.entry);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 160,
+            child: Text(
+              entry.key,
+              style: const TextStyle(
+                color: AppColors.info,
+                fontSize: 11,
+                fontFamily: 'monospace',
+              ),
+            ),
+          ),
+          Expanded(
+            child: CopyableText(
+              entry.value,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 11,
+                fontFamily: 'monospace',
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
