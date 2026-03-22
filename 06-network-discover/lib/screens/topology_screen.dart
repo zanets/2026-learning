@@ -1,4 +1,4 @@
-import 'dart:math';
+import 'dart:math' show pi, cos, sin;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/network_device.dart';
@@ -168,13 +168,10 @@ class _TopologyView extends StatelessWidget {
   }
 
   Map<String, Offset> _computePositions(Size size, Offset center) {
-    const minRadius = 80.0;
+    const minRadius = 120.0;
     const maxRadius = 220.0;
-
-    // Find max RTT among those that responded
-    final respondedRtts =
-        rttMap.values.whereType<double>().toList();
-    final maxRtt = respondedRtts.isEmpty ? 1.0 : respondedRtts.reduce(max);
+    // 0 ms → 80 px, 140 ms → 220 px, linear, clamped
+    const rttScale = (maxRadius - minRadius) / 140.0;
 
     final positions = <String, Offset>{};
     final count = devices.length;
@@ -185,17 +182,13 @@ class _TopologyView extends StatelessWidget {
 
       double radius;
       if (!rttMap.containsKey(ip)) {
-        // No RTT yet — place at mid-distance
         radius = (minRadius + maxRadius) / 2;
       } else {
         final rtt = rttMap[ip];
         if (rtt == null) {
-          // Timeout — place at max distance
           radius = maxRadius;
         } else {
-          // Map RTT to radius: faster = closer
-          final t = maxRtt > 0 ? (rtt / maxRtt).clamp(0.0, 1.0) : 0.0;
-          radius = minRadius + t * (maxRadius - minRadius);
+          radius = (minRadius + rtt * rttScale).clamp(minRadius, maxRadius);
         }
       }
 
