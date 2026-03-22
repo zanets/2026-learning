@@ -72,7 +72,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
           if (hasDevices)
             IconButton(
               icon: const Icon(Icons.hub_outlined),
-              tooltip: 'Topology',
+              tooltip: l10n.topology,
               onPressed: () => context.push('/topology'),
             ),
           IconButton(
@@ -100,29 +100,6 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
               onDismiss: () => ref.read(scannerProvider.notifier).clearError(),
             ),
 
-          // Scan button bar
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: FilledButton.icon(
-              onPressed: scanState.isScanning
-                  ? () => ref.read(scannerProvider.notifier).cancel()
-                  : () => ref.read(scannerProvider.notifier).startScan(),
-              icon: Icon(
-                scanState.isScanning ? Icons.stop : Icons.search,
-                size: 18,
-              ),
-              label: Text(scanState.isScanning ? l10n.cancel : l10n.scan),
-              style: FilledButton.styleFrom(
-                backgroundColor:
-                    scanState.isScanning ? AppColors.danger : AppColors.accent,
-                foregroundColor:
-                    scanState.isScanning ? Colors.white : AppColors.bg,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                minimumSize: const Size.fromHeight(44),
-              ),
-            ),
-          ),
-
           // Content
           Expanded(
             child: scanState.devices.isEmpty
@@ -130,20 +107,45 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
                     isScanning: scanState.isScanning,
                     pulseController: _pulseController,
                     l10n: l10n,
+                    onScan: () => ref.read(scannerProvider.notifier).startScan(),
+                    onCancel: () => ref.read(scannerProvider.notifier).cancel(),
                   )
-                : AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 200),
-                    child: _layout == _Layout.grid
-                        ? _DeviceGrid(
-                            key: const ValueKey(_Layout.grid),
-                            devices: scanState.devices,
-                            onDeviceTap: _openDeviceDetail,
-                          )
-                        : _DeviceList(
-                            key: const ValueKey(_Layout.list),
-                            devices: scanState.devices,
-                            onDeviceTap: _openDeviceDetail,
-                          ),
+                : Stack(
+                    children: [
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        child: _layout == _Layout.grid
+                            ? _DeviceGrid(
+                                key: const ValueKey(_Layout.grid),
+                                devices: scanState.devices,
+                                onDeviceTap: _openDeviceDetail,
+                              )
+                            : _DeviceList(
+                                key: const ValueKey(_Layout.list),
+                                devices: scanState.devices,
+                                onDeviceTap: _openDeviceDetail,
+                              ),
+                      ),
+                      Positioned(
+                        right: 16,
+                        bottom: 16,
+                        child: scanState.isScanning
+                            ? FloatingActionButton.extended(
+                                onPressed: () => ref.read(scannerProvider.notifier).cancel(),
+                                icon: const Icon(Icons.stop, size: 18),
+                                label: Text(l10n.cancel),
+                                backgroundColor: AppColors.danger,
+                                foregroundColor: Colors.white,
+                              )
+                            : FloatingActionButton.extended(
+                                onPressed: () => ref.read(scannerProvider.notifier).startScan(),
+                                icon: const Icon(Icons.refresh, size: 18),
+                                label: Text(l10n.scan),
+                                backgroundColor: AppColors.accent,
+                                foregroundColor: AppColors.bg,
+                              ),
+                      ),
+                    ],
                   ),
           ),
 
@@ -274,11 +276,15 @@ class _EmptyState extends StatelessWidget {
   final bool isScanning;
   final AnimationController pulseController;
   final AppLocalizations l10n;
+  final VoidCallback onScan;
+  final VoidCallback onCancel;
 
   const _EmptyState({
     required this.isScanning,
     required this.pulseController,
     required this.l10n,
+    required this.onScan,
+    required this.onCancel,
   });
 
   @override
@@ -304,6 +310,27 @@ class _EmptyState extends StatelessWidget {
             isScanning ? l10n.scanning : l10n.startScan,
             style: const TextStyle(color: AppColors.textSecondary),
           ),
+          const SizedBox(height: 24),
+          isScanning
+              ? OutlinedButton.icon(
+                  onPressed: onCancel,
+                  icon: const Icon(Icons.stop, size: 16),
+                  label: Text(l10n.cancel),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.danger,
+                    side: const BorderSide(color: AppColors.danger),
+                  ),
+                )
+              : FilledButton.icon(
+                  onPressed: onScan,
+                  icon: const Icon(Icons.search, size: 16),
+                  label: Text(l10n.scan),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    foregroundColor: AppColors.bg,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  ),
+                ),
         ],
       ),
     );
