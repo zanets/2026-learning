@@ -59,6 +59,7 @@ class ScannerNotifier extends Notifier<ScannerState> {
       final result = await _service.scan(
         subnet: settings.subnet,
         nmapPath: settings.nmapPath,
+        timeoutSeconds: settings.pingSweepTimeout,
         onLog: (line) {
           state = state.copyWith(logs: [...state.logs, line]);
         },

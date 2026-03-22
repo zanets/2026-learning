@@ -149,6 +149,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get networkSettings => 'Network Settings';
 
   @override
+  String get timeoutSettings => 'Timeout Settings';
+
+  @override
+  String get pingSweepTimeout => 'Ping Sweep Timeout (s)';
+
+  @override
+  String get portScanTimeout => 'Port Scan Timeout (s)';
+
+  @override
   String get appSettings => 'App Settings';
 
   @override

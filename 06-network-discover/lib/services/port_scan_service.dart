@@ -17,8 +17,6 @@ class OsMatch {
 }
 
 class PortScanService {
-  static const _timeout = Duration(seconds: 300);
-
   Process? _process;
 
   void cancel() {
@@ -30,6 +28,7 @@ class PortScanService {
     required String ip,
     required String nmapPath,
     required String sudoPassword,
+    required int timeoutSeconds,
     required void Function(String line) onLog,
     required void Function(PortInfo port) onPort,
     void Function(ScanProgress progress)? onProgress,
@@ -67,12 +66,13 @@ class PortScanService {
       _parseProgress(line, onProgress);
     });
 
+    final timeout = Duration(seconds: timeoutSeconds);
     int exitCode;
     try {
       exitCode = await process.exitCode.timeout(
-        _timeout,
+        timeout,
         onTimeout: () {
-          onLog('Port scan timed out after ${_timeout.inSeconds}s — killing process');
+          onLog('Port scan timed out after ${timeoutSeconds}s — killing process');
           process.kill(ProcessSignal.sigterm);
           return -1;
         },
@@ -82,7 +82,7 @@ class PortScanService {
     }
 
     if (exitCode == -1) {
-      throw Exception('Port scan timed out after ${_timeout.inSeconds}s');
+      throw Exception('Port scan timed out after ${timeoutSeconds}s');
     }
 
     final xmlStr = xmlBuffer.toString();

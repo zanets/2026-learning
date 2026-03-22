@@ -362,6 +362,24 @@ abstract class AppLocalizations {
   /// **'Network Settings'**
   String get networkSettings;
 
+  /// No description provided for @timeoutSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeout Settings'**
+  String get timeoutSettings;
+
+  /// No description provided for @pingSweepTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Ping Sweep Timeout (s)'**
+  String get pingSweepTimeout;
+
+  /// No description provided for @portScanTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Port Scan Timeout (s)'**
+  String get portScanTimeout;
+
   /// No description provided for @appSettings.
   ///
   /// In en, this message translates to:

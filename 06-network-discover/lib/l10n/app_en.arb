@@ -64,6 +64,9 @@
   "subnetHint": "e.g. 192.168.1.0/24",
   "nmapPathHint": "e.g. /usr/bin/nmap",
   "networkSettings": "Network Settings",
+  "timeoutSettings": "Timeout Settings",
+  "pingSweepTimeout": "Ping Sweep Timeout (s)",
+  "portScanTimeout": "Port Scan Timeout (s)",
   "appSettings": "App Settings",
   "online": "Online",
   "unknown": "Unknown"

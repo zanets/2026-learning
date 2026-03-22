@@ -16,6 +16,8 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late TextEditingController _subnetCtrl;
   late TextEditingController _nmapCtrl;
+  late TextEditingController _pingSweepTimeoutCtrl;
+  late TextEditingController _portScanTimeoutCtrl;
   String? _pendingLocale;
   bool _saved = false;
   String? _nmapStatus;
@@ -28,6 +30,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final settings = ref.read(settingsProvider);
     _subnetCtrl = TextEditingController(text: settings.subnet);
     _nmapCtrl = TextEditingController(text: settings.nmapPath);
+    _pingSweepTimeoutCtrl =
+        TextEditingController(text: settings.pingSweepTimeout.toString());
+    _portScanTimeoutCtrl =
+        TextEditingController(text: settings.portScanTimeout.toString());
     _pendingLocale = settings.localeCode;
   }
 
@@ -35,6 +41,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   void dispose() {
     _subnetCtrl.dispose();
     _nmapCtrl.dispose();
+    _pingSweepTimeoutCtrl.dispose();
+    _portScanTimeoutCtrl.dispose();
     super.dispose();
   }
 
@@ -46,6 +54,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             nmapPath: _nmapCtrl.text.trim(),
             localeCode: _pendingLocale,
             clearLocale: _pendingLocale == null,
+            pingSweepTimeout:
+                int.tryParse(_pingSweepTimeoutCtrl.text.trim()) ?? 120,
+            portScanTimeout:
+                int.tryParse(_portScanTimeoutCtrl.text.trim()) ?? 300,
           ),
         );
     setState(() => _saved = true);
@@ -271,6 +283,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 20),
+
+          // ── Timeout Settings ─────────────────────────────────────────────
+          _SectionHeader(icon: Icons.timer_outlined, title: l10n.timeoutSettings),
+          const SizedBox(height: 8),
+          _SettingsCard(
+            child: Column(
+              children: [
+                _TimeoutField(
+                  controller: _pingSweepTimeoutCtrl,
+                  label: l10n.pingSweepTimeout,
+                ),
+                const SizedBox(height: 12),
+                _TimeoutField(
+                  controller: _portScanTimeoutCtrl,
+                  label: l10n.portScanTimeout,
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 28),
 
           // ── Save button ─────────────────────────────────────────────────
@@ -365,6 +397,28 @@ class _LangButton extends StatelessWidget {
             fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _TimeoutField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+
+  const _TimeoutField({required this.controller, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      keyboardType: TextInputType.number,
+      style: const TextStyle(
+          color: AppColors.textPrimary, fontFamily: 'monospace'),
+      decoration: InputDecoration(
+        labelText: label,
+        suffixText: 's',
+        suffixStyle: const TextStyle(color: AppColors.textSecondary),
       ),
     );
   }

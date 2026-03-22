@@ -10,8 +10,6 @@ class ScanResult {
 }
 
 class ScannerService {
-  static const _timeout = Duration(seconds: 120);
-
   Process? _process;
 
   void cancel() {
@@ -22,6 +20,7 @@ class ScannerService {
   Future<ScanResult> scan({
     required String subnet,
     required String nmapPath,
+    required int timeoutSeconds,
     required void Function(String line) onLog,
     required void Function(NetworkDevice device) onDevice,
     void Function(String error)? onError,
@@ -75,12 +74,13 @@ class ScannerService {
       onLog(line.trim());
     });
 
+    final timeout = Duration(seconds: timeoutSeconds);
     int exitCode;
     try {
       exitCode = await process.exitCode.timeout(
-        _timeout,
+        timeout,
         onTimeout: () {
-          onLog('Scan timed out after ${_timeout.inSeconds}s — killing process');
+          onLog('Scan timed out after ${timeoutSeconds}s — killing process');
           process.kill(ProcessSignal.sigterm);
           return -1;
         },
@@ -90,7 +90,7 @@ class ScannerService {
     }
 
     if (exitCode == -1) {
-      throw Exception('Scan timed out after ${_timeout.inSeconds}s');
+      throw Exception('Scan timed out after ${timeoutSeconds}s');
     }
 
     final xmlStr = xmlBuffer.toString();

@@ -149,6 +149,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get networkSettings => '網路設定';
 
   @override
+  String get timeoutSettings => '逾時設定';
+
+  @override
+  String get pingSweepTimeout => 'Ping 掃描逾時（秒）';
+
+  @override
+  String get portScanTimeout => '連接埠掃描逾時（秒）';
+
+  @override
   String get appSettings => '應用程式設定';
 
   @override

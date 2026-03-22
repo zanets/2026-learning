@@ -64,6 +64,9 @@
   "subnetHint": "例如：192.168.1.0/24",
   "nmapPathHint": "例如：/usr/bin/nmap",
   "networkSettings": "網路設定",
+  "timeoutSettings": "逾時設定",
+  "pingSweepTimeout": "Ping 掃描逾時（秒）",
+  "portScanTimeout": "連接埠掃描逾時（秒）",
   "appSettings": "應用程式設定",
   "online": "連線中",
   "unknown": "未知"
