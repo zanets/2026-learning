@@ -29,26 +29,17 @@ class PortScanService {
     required String nmapPath,
     required String sudoPassword,
     required int timeoutSeconds,
+    required List<String> nmapArgs,
     required void Function(String line) onLog,
     required void Function(PortInfo port) onPort,
     void Function(ScanProgress progress)? onProgress,
     void Function(OsMatch os)? onOsDetected,
   }) async {
+    final fullCmd = 'sudo -S $nmapPath ${nmapArgs.join(' ')}';
     onLog('Starting port scan on $ip');
+    onLog('Command: $fullCmd');
 
-    final process = await Process.start('sudo', [
-      '-S',
-      nmapPath,
-      '-sV',
-      '-O',
-      '--open',
-      '-T4',
-      '--stats-every',
-      '2s',
-      '-oX',
-      '-',
-      ip,
-    ]);
+    final process = await Process.start('sudo', ['-S', nmapPath, ...nmapArgs]);
 
     _process = process;
     process.stdin.write('$sudoPassword\n');

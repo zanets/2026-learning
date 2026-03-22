@@ -245,7 +245,7 @@ abstract class AppLocalizations {
   /// No description provided for @osDetection.
   ///
   /// In en, this message translates to:
-  /// **'OS Detection'**
+  /// **'OS Detection (-O)'**
   String get osDetection;
 
   /// No description provided for @confidence.
@@ -361,6 +361,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Network Settings'**
   String get networkSettings;
+
+  /// No description provided for @portScanOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Port Scan Options'**
+  String get portScanOptions;
+
+  /// No description provided for @portRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Port Range'**
+  String get portRange;
+
+  /// No description provided for @portRangeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 1-10000 or 22,80,443'**
+  String get portRangeHint;
+
+  /// No description provided for @timingTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Timing Template'**
+  String get timingTemplate;
+
+  /// No description provided for @versionDetection.
+  ///
+  /// In en, this message translates to:
+  /// **'Version Detection (-sV)'**
+  String get versionDetection;
+
+  /// No description provided for @openOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Ports Only (--open)'**
+  String get openOnly;
+
+  /// No description provided for @commandPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Command Preview'**
+  String get commandPreview;
 
   /// No description provided for @timeoutSettings.
   ///

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../models/app_settings.dart';
 import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
@@ -18,7 +19,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late TextEditingController _nmapCtrl;
   late TextEditingController _pingSweepTimeoutCtrl;
   late TextEditingController _portScanTimeoutCtrl;
+  late TextEditingController _portRangeCtrl;
   String? _pendingLocale;
+  late int _timingTemplate;
+  late bool _versionDetection;
+  late bool _osDetection;
+  late bool _openOnly;
   bool _saved = false;
   String? _nmapStatus;
   bool _verifying = false;
@@ -27,14 +33,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    final settings = ref.read(settingsProvider);
-    _subnetCtrl = TextEditingController(text: settings.subnet);
-    _nmapCtrl = TextEditingController(text: settings.nmapPath);
+    final s = ref.read(settingsProvider);
+    _subnetCtrl = TextEditingController(text: s.subnet);
+    _nmapCtrl = TextEditingController(text: s.nmapPath);
     _pingSweepTimeoutCtrl =
-        TextEditingController(text: settings.pingSweepTimeout.toString());
+        TextEditingController(text: s.pingSweepTimeout.toString());
     _portScanTimeoutCtrl =
-        TextEditingController(text: settings.portScanTimeout.toString());
-    _pendingLocale = settings.localeCode;
+        TextEditingController(text: s.portScanTimeout.toString());
+    _portRangeCtrl = TextEditingController(text: s.portRange);
+    _pendingLocale = s.localeCode;
+    _timingTemplate = s.timingTemplate;
+    _versionDetection = s.versionDetection;
+    _osDetection = s.osDetection;
+    _openOnly = s.openOnly;
   }
 
   @override
@@ -43,23 +54,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _nmapCtrl.dispose();
     _pingSweepTimeoutCtrl.dispose();
     _portScanTimeoutCtrl.dispose();
+    _portRangeCtrl.dispose();
     super.dispose();
   }
 
+  AppSettings get _pendingSettings => ref.read(settingsProvider).copyWith(
+        subnet: _subnetCtrl.text.trim(),
+        nmapPath: _nmapCtrl.text.trim(),
+        localeCode: _pendingLocale,
+        clearLocale: _pendingLocale == null,
+        pingSweepTimeout:
+            int.tryParse(_pingSweepTimeoutCtrl.text.trim()) ?? 120,
+        portScanTimeout:
+            int.tryParse(_portScanTimeoutCtrl.text.trim()) ?? 300,
+        portRange: _portRangeCtrl.text.trim(),
+        timingTemplate: _timingTemplate,
+        versionDetection: _versionDetection,
+        osDetection: _osDetection,
+        openOnly: _openOnly,
+      );
+
   Future<void> _save() async {
-    final settings = ref.read(settingsProvider);
-    await ref.read(settingsProvider.notifier).save(
-          settings.copyWith(
-            subnet: _subnetCtrl.text.trim(),
-            nmapPath: _nmapCtrl.text.trim(),
-            localeCode: _pendingLocale,
-            clearLocale: _pendingLocale == null,
-            pingSweepTimeout:
-                int.tryParse(_pingSweepTimeoutCtrl.text.trim()) ?? 120,
-            portScanTimeout:
-                int.tryParse(_portScanTimeoutCtrl.text.trim()) ?? 300,
-          ),
-        );
+    await ref.read(settingsProvider.notifier).save(_pendingSettings);
     setState(() => _saved = true);
     await Future.delayed(const Duration(seconds: 2));
     if (mounted) setState(() => _saved = false);
@@ -285,6 +301,128 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           const SizedBox(height: 20),
 
+          // ── Port Scan Options ────────────────────────────────────────────
+          _SectionHeader(icon: Icons.manage_search, title: l10n.portScanOptions),
+          const SizedBox(height: 8),
+          _SettingsCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Port range
+                TextField(
+                  controller: _portRangeCtrl,
+                  style: const TextStyle(
+                      color: AppColors.textPrimary, fontFamily: 'monospace'),
+                  decoration: InputDecoration(
+                    labelText: l10n.portRange,
+                    hintText: l10n.portRangeHint,
+                  ),
+                  onChanged: (_) => setState(() {}),
+                ),
+                const SizedBox(height: 12),
+
+                // Timing template
+                Row(
+                  children: [
+                    Text(l10n.timingTemplate,
+                        style: const TextStyle(
+                            color: AppColors.textSecondary, fontSize: 13)),
+                    const Spacer(),
+                    ...List.generate(5, (i) {
+                      final t = i + 1;
+                      final selected = _timingTemplate == t;
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 6),
+                        child: GestureDetector(
+                          onTap: () => setState(() => _timingTemplate = t),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 120),
+                            width: 34,
+                            height: 30,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: selected
+                                  ? AppColors.accent.withValues(alpha: 0.15)
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: selected
+                                    ? AppColors.accent
+                                    : AppColors.border,
+                              ),
+                            ),
+                            child: Text(
+                              'T$t',
+                              style: TextStyle(
+                                color: selected
+                                    ? AppColors.accent
+                                    : AppColors.textSecondary,
+                                fontSize: 12,
+                                fontWeight: selected
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // Toggle options
+                _ToggleRow(
+                  label: l10n.versionDetection,
+                  value: _versionDetection,
+                  onChanged: (v) => setState(() => _versionDetection = v),
+                ),
+                _ToggleRow(
+                  label: l10n.osDetection,
+                  value: _osDetection,
+                  onChanged: (v) => setState(() => _osDetection = v),
+                ),
+                _ToggleRow(
+                  label: l10n.openOnly,
+                  value: _openOnly,
+                  onChanged: (v) => setState(() => _openOnly = v),
+                ),
+                const SizedBox(height: 8),
+
+                // Command preview
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.bg,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.commandPreview,
+                        style: const TextStyle(
+                            color: AppColors.textSecondary, fontSize: 11),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _pendingSettings.portScanPreview,
+                        style: const TextStyle(
+                          color: AppColors.accent,
+                          fontFamily: 'monospace',
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
           // ── Timeout Settings ─────────────────────────────────────────────
           _SectionHeader(icon: Icons.timer_outlined, title: l10n.timeoutSettings),
           const SizedBox(height: 8),
@@ -398,6 +536,34 @@ class _LangButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ToggleRow extends StatelessWidget {
+  final String label;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _ToggleRow(
+      {required this.label, required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(label,
+              style: const TextStyle(
+                  color: AppColors.textSecondary, fontSize: 13)),
+        ),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          activeThumbColor: AppColors.accent,
+          activeTrackColor: AppColors.accentDim,
+        ),
+      ],
     );
   }
 }

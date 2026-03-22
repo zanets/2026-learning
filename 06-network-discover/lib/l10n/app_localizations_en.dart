@@ -83,7 +83,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get version => 'Version';
 
   @override
-  String get osDetection => 'OS Detection';
+  String get osDetection => 'OS Detection (-O)';
 
   @override
   String get confidence => 'Confidence';
@@ -147,6 +147,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get networkSettings => 'Network Settings';
+
+  @override
+  String get portScanOptions => 'Port Scan Options';
+
+  @override
+  String get portRange => 'Port Range';
+
+  @override
+  String get portRangeHint => 'e.g. 1-10000 or 22,80,443';
+
+  @override
+  String get timingTemplate => 'Timing Template';
+
+  @override
+  String get versionDetection => 'Version Detection (-sV)';
+
+  @override
+  String get openOnly => 'Open Ports Only (--open)';
+
+  @override
+  String get commandPreview => 'Command Preview';
 
   @override
   String get timeoutSettings => 'Timeout Settings';

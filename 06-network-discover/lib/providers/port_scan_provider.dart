@@ -91,6 +91,7 @@ class PortScanNotifier extends FamilyNotifier<PortScanState, String> {
         nmapPath: settings.nmapPath,
         sudoPassword: sudoPassword,
         timeoutSeconds: settings.portScanTimeout,
+        nmapArgs: settings.buildPortScanArgs(arg),
         onLog: (line) {
           state = state.copyWith(logs: [...state.logs, line]);
         },

@@ -83,7 +83,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get version => '版本';
 
   @override
-  String get osDetection => '作業系統偵測';
+  String get osDetection => '作業系統偵測 (-O)';
 
   @override
   String get confidence => '信心度';
@@ -147,6 +147,27 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get networkSettings => '網路設定';
+
+  @override
+  String get portScanOptions => '連接埠掃描選項';
+
+  @override
+  String get portRange => '連接埠範圍';
+
+  @override
+  String get portRangeHint => '例如 1-10000 或 22,80,443';
+
+  @override
+  String get timingTemplate => '速度模板';
+
+  @override
+  String get versionDetection => '版本偵測 (-sV)';
+
+  @override
+  String get openOnly => '僅顯示開放連接埠 (--open)';
+
+  @override
+  String get commandPreview => '指令預覽';
 
   @override
   String get timeoutSettings => '逾時設定';
