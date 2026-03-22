@@ -66,13 +66,13 @@ class ScannerService {
     final xmlBuffer = StringBuffer();
     final devices = <NetworkDevice>[];
 
-    process.stdout.transform(const SystemEncoding().decoder).listen((chunk) {
-      xmlBuffer.write(chunk);
-    });
+    final stdoutDone = process.stdout
+        .transform(const SystemEncoding().decoder)
+        .forEach((chunk) => xmlBuffer.write(chunk));
 
-    process.stderr.transform(const SystemEncoding().decoder).listen((line) {
-      onLog(line.trim());
-    });
+    final stderrDone = process.stderr
+        .transform(const SystemEncoding().decoder)
+        .forEach((line) => onLog(line.trim()));
 
     final timeout = Duration(seconds: timeoutSeconds);
     int exitCode;
@@ -85,6 +85,7 @@ class ScannerService {
           return -1;
         },
       );
+      await Future.wait([stdoutDone, stderrDone]);
     } finally {
       _process = null;
     }

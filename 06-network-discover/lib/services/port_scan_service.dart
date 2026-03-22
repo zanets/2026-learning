@@ -57,11 +57,15 @@ class PortScanService {
     final xmlBuffer = StringBuffer();
     final ports = <PortInfo>[];
 
-    process.stdout.transform(const SystemEncoding().decoder).listen((chunk) {
-      xmlBuffer.write(chunk);
-    });
+    // Use forEach() so we get awaitable Futures — ensures all data is
+    // fully delivered to xmlBuffer before we attempt XML parsing.
+    final stdoutDone = process.stdout
+        .transform(const SystemEncoding().decoder)
+        .forEach((chunk) => xmlBuffer.write(chunk));
 
-    process.stderr.transform(const SystemEncoding().decoder).listen((line) {
+    final stderrDone = process.stderr
+        .transform(const SystemEncoding().decoder)
+        .forEach((line) {
       onLog(line.trim());
       _parseProgress(line, onProgress);
     });
@@ -77,6 +81,8 @@ class PortScanService {
           return -1;
         },
       );
+      // Drain remaining buffered stream data after process exits
+      await Future.wait([stdoutDone, stderrDone]);
     } finally {
       _process = null;
     }
