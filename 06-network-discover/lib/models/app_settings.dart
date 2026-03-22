@@ -4,6 +4,7 @@ class AppSettings {
   final String? localeCode;
   final int pingSweepTimeout; // seconds
   final int portScanTimeout;  // seconds
+  final int pingWaitMs;       // milliseconds for -W flag
 
   // Port scan options
   final String portRange;      // e.g. "1-10000" | "1-65535" | "22,80,443"
@@ -18,6 +19,7 @@ class AppSettings {
     this.localeCode,
     this.pingSweepTimeout = 120,
     this.portScanTimeout = 300,
+    this.pingWaitMs = 1000,
     this.portRange = '1-10000',
     this.timingTemplate = 4,
     this.versionDetection = true,
@@ -31,6 +33,7 @@ class AppSettings {
     String? localeCode,
     int? pingSweepTimeout,
     int? portScanTimeout,
+    int? pingWaitMs,
     String? portRange,
     int? timingTemplate,
     bool? versionDetection,
@@ -44,6 +47,7 @@ class AppSettings {
       localeCode: clearLocale ? null : (localeCode ?? this.localeCode),
       pingSweepTimeout: pingSweepTimeout ?? this.pingSweepTimeout,
       portScanTimeout: portScanTimeout ?? this.portScanTimeout,
+      pingWaitMs: pingWaitMs ?? this.pingWaitMs,
       portRange: portRange ?? this.portRange,
       timingTemplate: timingTemplate ?? this.timingTemplate,
       versionDetection: versionDetection ?? this.versionDetection,
@@ -58,6 +62,7 @@ class AppSettings {
         'localeCode': localeCode,
         'pingSweepTimeout': pingSweepTimeout,
         'portScanTimeout': portScanTimeout,
+        'pingWaitMs': pingWaitMs,
         'portRange': portRange,
         'timingTemplate': timingTemplate,
         'versionDetection': versionDetection,
@@ -71,6 +76,7 @@ class AppSettings {
         localeCode: json['localeCode'] as String?,
         pingSweepTimeout: (json['pingSweepTimeout'] as int?) ?? 120,
         portScanTimeout: (json['portScanTimeout'] as int?) ?? 300,
+        pingWaitMs: (json['pingWaitMs'] as int?) ?? 1000,
         portRange: (json['portRange'] as String?) ?? '1-10000',
         timingTemplate: (json['timingTemplate'] as int?) ?? 4,
         versionDetection: (json['versionDetection'] as bool?) ?? true,

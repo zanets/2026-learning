@@ -19,6 +19,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late TextEditingController _nmapCtrl;
   late TextEditingController _pingSweepTimeoutCtrl;
   late TextEditingController _portScanTimeoutCtrl;
+  late TextEditingController _pingWaitMsCtrl;
   late TextEditingController _portRangeCtrl;
   String? _pendingLocale;
   late int _timingTemplate;
@@ -40,6 +41,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         TextEditingController(text: s.pingSweepTimeout.toString());
     _portScanTimeoutCtrl =
         TextEditingController(text: s.portScanTimeout.toString());
+    _pingWaitMsCtrl =
+        TextEditingController(text: s.pingWaitMs.toString());
     _portRangeCtrl = TextEditingController(text: s.portRange);
     _pendingLocale = s.localeCode;
     _timingTemplate = s.timingTemplate;
@@ -54,6 +57,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _nmapCtrl.dispose();
     _pingSweepTimeoutCtrl.dispose();
     _portScanTimeoutCtrl.dispose();
+    _pingWaitMsCtrl.dispose();
     _portRangeCtrl.dispose();
     super.dispose();
   }
@@ -67,6 +71,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             int.tryParse(_pingSweepTimeoutCtrl.text.trim()) ?? 120,
         portScanTimeout:
             int.tryParse(_portScanTimeoutCtrl.text.trim()) ?? 300,
+        pingWaitMs:
+            int.tryParse(_pingWaitMsCtrl.text.trim()) ?? 1000,
         portRange: _portRangeCtrl.text.trim(),
         timingTemplate: _timingTemplate,
         versionDetection: _versionDetection,
@@ -438,6 +444,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   controller: _portScanTimeoutCtrl,
                   label: l10n.portScanTimeout,
                 ),
+                const SizedBox(height: 12),
+                _TimeoutField(
+                  controller: _pingWaitMsCtrl,
+                  label: 'Ping wait time',
+                  unit: 'ms',
+                ),
               ],
             ),
           ),
@@ -571,8 +583,13 @@ class _ToggleRow extends StatelessWidget {
 class _TimeoutField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
+  final String unit;
 
-  const _TimeoutField({required this.controller, required this.label});
+  const _TimeoutField({
+    required this.controller,
+    required this.label,
+    this.unit = 's',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -583,7 +600,7 @@ class _TimeoutField extends StatelessWidget {
           color: AppColors.textPrimary, fontFamily: 'monospace'),
       decoration: InputDecoration(
         labelText: label,
-        suffixText: 's',
+        suffixText: unit,
         suffixStyle: const TextStyle(color: AppColors.textSecondary),
       ),
     );
