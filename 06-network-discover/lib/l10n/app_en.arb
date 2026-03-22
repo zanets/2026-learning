@@ -60,6 +60,7 @@
       "error": { "type": "String" }
     }
   },
+  "detectSubnet": "Detect from default route",
   "subnetHint": "e.g. 192.168.1.0/24",
   "nmapPathHint": "e.g. /usr/bin/nmap",
   "networkSettings": "Network Settings",

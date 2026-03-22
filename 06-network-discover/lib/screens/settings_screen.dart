@@ -20,6 +20,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _saved = false;
   String? _nmapStatus;
   bool _verifying = false;
+  bool _detectingSubnet = false;
 
   @override
   void initState() {
@@ -50,6 +51,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     setState(() => _saved = true);
     await Future.delayed(const Duration(seconds: 2));
     if (mounted) setState(() => _saved = false);
+  }
+
+  Future<void> _detectSubnet() async {
+    setState(() => _detectingSubnet = true);
+    final subnet = await detectSubnet();
+    if (mounted) {
+      setState(() {
+        _subnetCtrl.text = subnet;
+        _detectingSubnet = false;
+      });
+    }
   }
 
   Future<void> _verifyNmap() async {
@@ -115,14 +127,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _SectionHeader(icon: Icons.wifi, title: l10n.networkSettings),
           const SizedBox(height: 8),
           _SettingsCard(
-            child: TextField(
-              controller: _subnetCtrl,
-              style: const TextStyle(
-                  color: AppColors.textPrimary, fontFamily: 'monospace'),
-              decoration: InputDecoration(
-                labelText: l10n.subnet,
-                hintText: l10n.subnetHint,
-              ),
+            child: Column(
+              children: [
+                TextField(
+                  controller: _subnetCtrl,
+                  style: const TextStyle(
+                      color: AppColors.textPrimary, fontFamily: 'monospace'),
+                  decoration: InputDecoration(
+                    labelText: l10n.subnet,
+                    hintText: l10n.subnetHint,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: OutlinedButton.icon(
+                    onPressed: _detectingSubnet ? null : _detectSubnet,
+                    icon: _detectingSubnet
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.my_location, size: 16),
+                    label: Text(l10n.detectSubnet),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.accent,
+                      side: const BorderSide(color: AppColors.border),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 20),

@@ -137,6 +137,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get detectSubnet => 'Detect from default route';
+
+  @override
   String get subnetHint => 'e.g. 192.168.1.0/24';
 
   @override

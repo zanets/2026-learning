@@ -60,6 +60,7 @@
       "error": { "type": "String" }
     }
   },
+  "detectSubnet": "從預設路由偵測",
   "subnetHint": "例如：192.168.1.0/24",
   "nmapPathHint": "例如：/usr/bin/nmap",
   "networkSettings": "網路設定",

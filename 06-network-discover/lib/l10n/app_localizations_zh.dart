@@ -137,6 +137,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get detectSubnet => '從預設路由偵測';
+
+  @override
   String get subnetHint => '例如：192.168.1.0/24';
 
   @override

@@ -338,6 +338,12 @@ abstract class AppLocalizations {
   /// **'Scan error: {error}'**
   String scanError(String error);
 
+  /// No description provided for @detectSubnet.
+  ///
+  /// In en, this message translates to:
+  /// **'Detect from default route'**
+  String get detectSubnet;
+
   /// No description provided for @subnetHint.
   ///
   /// In en, this message translates to:
