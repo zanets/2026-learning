@@ -43,6 +43,8 @@ Link: [04-n8n-zrok](https://github.com/zanets/04-n8n-zrok)
 
 ## 06-network-discover
 
+Link: [06-network-discover](https://github.com/zanets/network-discover)
+
 - Flutter macOS Desktop
 - Riverpod 狀態管理
 - go_router 路由
