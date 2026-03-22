@@ -69,6 +69,12 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
               current: _layout,
               onChanged: (v) => setState(() => _layout = v),
             ),
+          if (hasDevices)
+            IconButton(
+              icon: const Icon(Icons.hub_outlined),
+              tooltip: 'Topology',
+              onPressed: () => context.push('/topology'),
+            ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: l10n.settings,
