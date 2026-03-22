@@ -9,6 +9,8 @@ import '../widgets/device_card.dart';
 import '../widgets/device_detail_sheet.dart';
 import '../widgets/nmap_log_panel.dart';
 
+enum _Layout { grid, list }
+
 class ScannerScreen extends ConsumerStatefulWidget {
   const ScannerScreen({super.key});
 
@@ -19,6 +21,7 @@ class ScannerScreen extends ConsumerStatefulWidget {
 class _ScannerScreenState extends ConsumerState<ScannerScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
+  _Layout _layout = _Layout.grid;
 
   @override
   void initState() {
@@ -48,6 +51,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scanState = ref.watch(scannerProvider);
+    final hasDevices = scanState.devices.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -59,6 +63,12 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
           ],
         ),
         actions: [
+          // Layout toggle — only shown when devices are visible
+          if (hasDevices)
+            _LayoutToggle(
+              current: _layout,
+              onChanged: (v) => setState(() => _layout = v),
+            ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: l10n.settings,
@@ -87,32 +97,23 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
           // Scan button bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: scanState.isScanning
-                        ? () => ref.read(scannerProvider.notifier).cancel()
-                        : () => ref.read(scannerProvider.notifier).startScan(),
-                    icon: Icon(
-                      scanState.isScanning ? Icons.stop : Icons.search,
-                      size: 18,
-                    ),
-                    label: Text(
-                      scanState.isScanning ? l10n.cancel : l10n.scan,
-                    ),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: scanState.isScanning
-                          ? AppColors.danger
-                          : AppColors.accent,
-                      foregroundColor: scanState.isScanning
-                          ? Colors.white
-                          : AppColors.bg,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
-              ],
+            child: FilledButton.icon(
+              onPressed: scanState.isScanning
+                  ? () => ref.read(scannerProvider.notifier).cancel()
+                  : () => ref.read(scannerProvider.notifier).startScan(),
+              icon: Icon(
+                scanState.isScanning ? Icons.stop : Icons.search,
+                size: 18,
+              ),
+              label: Text(scanState.isScanning ? l10n.cancel : l10n.scan),
+              style: FilledButton.styleFrom(
+                backgroundColor:
+                    scanState.isScanning ? AppColors.danger : AppColors.accent,
+                foregroundColor:
+                    scanState.isScanning ? Colors.white : AppColors.bg,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                minimumSize: const Size.fromHeight(44),
+              ),
             ),
           ),
 
@@ -124,15 +125,24 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
                     pulseController: _pulseController,
                     l10n: l10n,
                   )
-                : _DeviceGrid(
-                    devices: scanState.devices,
-                    onDeviceTap: _openDeviceDetail,
+                : AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: _layout == _Layout.grid
+                        ? _DeviceGrid(
+                            key: const ValueKey(_Layout.grid),
+                            devices: scanState.devices,
+                            onDeviceTap: _openDeviceDetail,
+                          )
+                        : _DeviceList(
+                            key: const ValueKey(_Layout.list),
+                            devices: scanState.devices,
+                            onDeviceTap: _openDeviceDetail,
+                          ),
                   ),
           ),
 
           // Log panel
-          if (scanState.logs.isNotEmpty)
-            NmapLogPanel(logs: scanState.logs),
+          if (scanState.logs.isNotEmpty) NmapLogPanel(logs: scanState.logs),
         ],
       ),
     );
@@ -140,6 +150,53 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
 }
 
 // ── Sub-widgets ───────────────────────────────────────────────────────────────
+
+class _LayoutToggle extends StatelessWidget {
+  final _Layout current;
+  final ValueChanged<_Layout> onChanged;
+
+  const _LayoutToggle({required this.current, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ToggleBtn(
+            icon: Icons.grid_view,
+            selected: current == _Layout.grid,
+            onTap: () => onChanged(_Layout.grid),
+          ),
+          _ToggleBtn(
+            icon: Icons.view_list,
+            selected: current == _Layout.list,
+            onTap: () => onChanged(_Layout.list),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ToggleBtn extends StatelessWidget {
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ToggleBtn(
+      {required this.icon, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(icon, size: 20),
+      color: selected ? AppColors.accent : AppColors.textSecondary,
+      onPressed: onTap,
+    );
+  }
+}
 
 class _SummaryRibbon extends StatelessWidget {
   final int count;
@@ -166,8 +223,7 @@ class _SummaryRibbon extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             l10n.scanDuration(duration.inSeconds.toString()),
-            style: const TextStyle(
-                color: AppColors.textSecondary, fontSize: 12),
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
           ),
         ],
       ),
@@ -248,11 +304,13 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
+// ── Grid layout ───────────────────────────────────────────────────────────────
+
 class _DeviceGrid extends StatelessWidget {
   final List<NetworkDevice> devices;
   final void Function(NetworkDevice) onDeviceTap;
 
-  const _DeviceGrid({required this.devices, required this.onDeviceTap});
+  const _DeviceGrid({super.key, required this.devices, required this.onDeviceTap});
 
   @override
   Widget build(BuildContext context) {
@@ -271,6 +329,138 @@ class _DeviceGrid extends StatelessWidget {
       itemBuilder: (context, index) => DeviceCard(
         device: devices[index],
         onTap: () => onDeviceTap(devices[index]),
+      ),
+    );
+  }
+}
+
+// ── List layout ───────────────────────────────────────────────────────────────
+
+class _DeviceList extends StatelessWidget {
+  final List<NetworkDevice> devices;
+  final void Function(NetworkDevice) onDeviceTap;
+
+  const _DeviceList({super.key, required this.devices, required this.onDeviceTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      itemCount: devices.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 4),
+      itemBuilder: (context, index) => _DeviceListTile(
+        device: devices[index],
+        onTap: () => onDeviceTap(devices[index]),
+      ),
+    );
+  }
+}
+
+class _DeviceListTile extends StatefulWidget {
+  final NetworkDevice device;
+  final VoidCallback onTap;
+
+  const _DeviceListTile({required this.device, required this.onTap});
+
+  @override
+  State<_DeviceListTile> createState() => _DeviceListTileState();
+}
+
+class _DeviceListTileState extends State<_DeviceListTile> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final d = widget.device;
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: _hovered ? AppColors.surfaceElevated : AppColors.surface,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: _hovered ? AppColors.accent : AppColors.border,
+            ),
+          ),
+          child: Row(
+            children: [
+              // Online indicator
+              Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.success,
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              // IP
+              SizedBox(
+                width: 130,
+                child: Text(
+                  d.ip,
+                  style: const TextStyle(
+                    color: AppColors.accent,
+                    fontFamily: 'monospace',
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+
+              // Hostname
+              Expanded(
+                flex: 2,
+                child: Text(
+                  d.hostname ?? '—',
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 13,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+
+              // Vendor
+              Expanded(
+                flex: 2,
+                child: Text(
+                  d.vendor ?? '—',
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+
+              // MAC
+              SizedBox(
+                width: 140,
+                child: Text(
+                  d.mac ?? '—',
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontFamily: 'monospace',
+                    fontSize: 11,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+
+              const Icon(Icons.chevron_right,
+                  size: 16, color: AppColors.textSecondary),
+            ],
+          ),
+        ),
       ),
     );
   }
