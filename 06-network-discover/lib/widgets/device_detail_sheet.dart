@@ -103,15 +103,24 @@ class _DeviceDetailSheetState extends ConsumerState<DeviceDetailSheet>
                       ),
                     ),
                     const Spacer(),
-                    // Scan / re-scan button
+                    // Scan / cancel button
                     FilledButton.icon(
-                      onPressed: scanState.isScanning ? null : _startScan,
-                      icon: const Icon(Icons.radar, size: 16),
+                      onPressed: scanState.isScanning
+                          ? () => ref
+                              .read(portScanProvider(device.ip).notifier)
+                              .cancel()
+                          : _startScan,
+                      icon: Icon(
+                        scanState.isScanning ? Icons.stop : Icons.radar,
+                        size: 16,
+                      ),
                       label: Text(
-                        scanState.isScanning ? l10n.scanning : l10n.portScan,
+                        scanState.isScanning ? l10n.cancel : l10n.portScan,
                       ),
                       style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.accentDim,
+                        backgroundColor: scanState.isScanning
+                            ? AppColors.danger
+                            : AppColors.accentDim,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 6),

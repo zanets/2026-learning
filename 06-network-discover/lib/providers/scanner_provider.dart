@@ -78,6 +78,11 @@ class ScannerNotifier extends Notifier<ScannerState> {
     }
   }
 
+  void cancel() {
+    _service.cancel();
+    state = state.copyWith(isScanning: false);
+  }
+
   void clearError() {
     state = state.copyWith(clearError: true);
   }

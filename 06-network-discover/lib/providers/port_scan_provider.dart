@@ -66,6 +66,11 @@ class PortScanNotifier extends FamilyNotifier<PortScanState, String> {
     return PortScanState(cached: cached);
   }
 
+  void cancel() {
+    _service.cancel();
+    state = state.copyWith(isScanning: false, clearProgress: true);
+  }
+
   Future<void> startScan(String sudoPassword) async {
     if (state.isScanning) return;
 

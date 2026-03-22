@@ -10,6 +10,15 @@ class ScanResult {
 }
 
 class ScannerService {
+  static const _timeout = Duration(seconds: 120);
+
+  Process? _process;
+
+  void cancel() {
+    _process?.kill(ProcessSignal.sigterm);
+    _process = null;
+  }
+
   Future<ScanResult> scan({
     required String subnet,
     required String nmapPath,
@@ -51,6 +60,7 @@ class ScannerService {
       subnet,
     ]);
 
+    _process = process;
     process.stdin.write('$password\n');
     await process.stdin.flush();
 
@@ -65,7 +75,23 @@ class ScannerService {
       onLog(line.trim());
     });
 
-    await process.exitCode;
+    int exitCode;
+    try {
+      exitCode = await process.exitCode.timeout(
+        _timeout,
+        onTimeout: () {
+          onLog('Scan timed out after ${_timeout.inSeconds}s — killing process');
+          process.kill(ProcessSignal.sigterm);
+          return -1;
+        },
+      );
+    } finally {
+      _process = null;
+    }
+
+    if (exitCode == -1) {
+      throw Exception('Scan timed out after ${_timeout.inSeconds}s');
+    }
 
     final xmlStr = xmlBuffer.toString();
     if (xmlStr.trim().isEmpty) {
@@ -90,7 +116,10 @@ class ScannerService {
         }
 
         final hostnamesEl = host.findElements('hostnames').firstOrNull;
-        hostname = hostnamesEl?.findElements('hostname').firstOrNull?.getAttribute('name');
+        hostname = hostnamesEl
+            ?.findElements('hostname')
+            .firstOrNull
+            ?.getAttribute('name');
 
         if (ip == null) continue;
 
@@ -110,7 +139,8 @@ class ScannerService {
     }
 
     stopwatch.stop();
-    onLog('Scan complete. Found ${devices.length} devices in ${stopwatch.elapsed.inSeconds}s');
+    onLog(
+        'Scan complete. Found ${devices.length} devices in ${stopwatch.elapsed.inSeconds}s');
     return ScanResult(devices: devices, duration: stopwatch.elapsed);
   }
 }

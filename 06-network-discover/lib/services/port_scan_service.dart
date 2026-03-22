@@ -17,6 +17,15 @@ class OsMatch {
 }
 
 class PortScanService {
+  static const _timeout = Duration(seconds: 300);
+
+  Process? _process;
+
+  void cancel() {
+    _process?.kill(ProcessSignal.sigterm);
+    _process = null;
+  }
+
   Future<List<PortInfo>> scan({
     required String ip,
     required String nmapPath,
@@ -42,6 +51,7 @@ class PortScanService {
       ip,
     ]);
 
+    _process = process;
     process.stdin.write('$sudoPassword\n');
     await process.stdin.flush();
 
@@ -57,7 +67,23 @@ class PortScanService {
       _parseProgress(line, onProgress);
     });
 
-    await process.exitCode;
+    int exitCode;
+    try {
+      exitCode = await process.exitCode.timeout(
+        _timeout,
+        onTimeout: () {
+          onLog('Port scan timed out after ${_timeout.inSeconds}s — killing process');
+          process.kill(ProcessSignal.sigterm);
+          return -1;
+        },
+      );
+    } finally {
+      _process = null;
+    }
+
+    if (exitCode == -1) {
+      throw Exception('Port scan timed out after ${_timeout.inSeconds}s');
+    }
 
     final xmlStr = xmlBuffer.toString();
     if (xmlStr.trim().isEmpty) {
@@ -74,7 +100,8 @@ class PortScanService {
       if (osMatches.isNotEmpty && onOsDetected != null) {
         final best = osMatches.first;
         final name = best.getAttribute('name') ?? '';
-        final accuracy = int.tryParse(best.getAttribute('accuracy') ?? '0') ?? 0;
+        final accuracy =
+            int.tryParse(best.getAttribute('accuracy') ?? '0') ?? 0;
         onOsDetected(OsMatch(name: name, accuracy: accuracy));
       }
 
@@ -87,7 +114,8 @@ class PortScanService {
         });
 
       for (final portEl in portElements) {
-        final state = portEl.findElements('state').firstOrNull?.getAttribute('state');
+        final state =
+            portEl.findElements('state').firstOrNull?.getAttribute('state');
         if (state != 'open') continue;
 
         final portNum = int.tryParse(portEl.getAttribute('portid') ?? '');
@@ -121,7 +149,6 @@ class PortScanService {
 
   void _parseProgress(String line, void Function(ScanProgress)? onProgress) {
     if (onProgress == null) return;
-    // "About 13.11% done; ETC: 06:55 (0:01:06 remaining)"
     final percentIdx = line.indexOf('%');
     if (percentIdx < 0) return;
     final aboutIdx = line.lastIndexOf(' ', percentIdx - 1);

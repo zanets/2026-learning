@@ -92,18 +92,22 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
                 Expanded(
                   child: FilledButton.icon(
                     onPressed: scanState.isScanning
-                        ? null
+                        ? () => ref.read(scannerProvider.notifier).cancel()
                         : () => ref.read(scannerProvider.notifier).startScan(),
                     icon: Icon(
-                      scanState.isScanning ? Icons.hourglass_top : Icons.search,
+                      scanState.isScanning ? Icons.stop : Icons.search,
                       size: 18,
                     ),
                     label: Text(
-                      scanState.isScanning ? l10n.scanning : l10n.scan,
+                      scanState.isScanning ? l10n.cancel : l10n.scan,
                     ),
                     style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.accent,
-                      foregroundColor: AppColors.bg,
+                      backgroundColor: scanState.isScanning
+                          ? AppColors.danger
+                          : AppColors.accent,
+                      foregroundColor: scanState.isScanning
+                          ? Colors.white
+                          : AppColors.bg,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
