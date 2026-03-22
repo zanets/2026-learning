@@ -1,0 +1,12 @@
+
+# FVM Version Cache
+.fvm/
+
+# Flutter/Dart
+.dart_tool/
+build/
+*.iml
+.idea/
+
+# Environment variables (keep .env.example)
+.env

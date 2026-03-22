@@ -10,3 +10,6 @@
 [submodule "04-n8n-zrok"]
 	path = 04-n8n-zrok
 	url = git@github.com:zanets/04-n8n-zrok.git
+[submodule "05-local-network-discover"]
+	path = 05-local-network-discover
+	url = git@github.com:zanets/05-local-network-discover.git

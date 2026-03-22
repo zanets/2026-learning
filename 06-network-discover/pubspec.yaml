@@ -1,0 +1,41 @@
+name: network_discover
+description: Local Network Discovery Tool - Riverpod + go_router + Hive + dotenv
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^2.6.1
+
+  # Routing
+  go_router: ^14.8.1
+
+  # Local storage
+  hive_flutter: ^1.1.0
+
+  # Environment variables
+  flutter_dotenv: ^5.2.1
+
+  # Utilities
+  intl: any
+  xml: ^6.5.0
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - .env
+  generate: true

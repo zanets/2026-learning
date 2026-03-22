@@ -1,0 +1,69 @@
+{
+  "@@locale": "en",
+  "appTitle": "Network Discover",
+  "scan": "Scan",
+  "cancel": "Cancel",
+  "scanning": "Scanning...",
+  "settings": "Settings",
+  "devices": "Devices",
+  "scanDuration": "Scan completed in {seconds}s",
+  "@scanDuration": {
+    "placeholders": {
+      "seconds": { "type": "String" }
+    }
+  },
+  "noDevicesFound": "No devices found",
+  "startScan": "Press Scan to discover devices",
+  "subnet": "Subnet",
+  "nmapPath": "nmap Path",
+  "language": "Language",
+  "saveSettings": "Save Settings",
+  "settingsSaved": "Settings saved",
+  "verifyNmap": "Verify nmap",
+  "nmapVerified": "nmap verified",
+  "nmapNotFound": "nmap not found",
+  "portScan": "Port Scan",
+  "portScanRunning": "Scanning ports...",
+  "openPorts": "Open Ports",
+  "noPorts": "No open ports found",
+  "port": "Port",
+  "service": "Service",
+  "version": "Version",
+  "osDetection": "OS Detection",
+  "confidence": "Confidence",
+  "cachedResult": "Cached result from {time}",
+  "@cachedResult": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "logs": "Logs",
+  "collapseLogs": "Collapse logs",
+  "expandLogs": "Expand logs",
+  "copied": "Copied!",
+  "riskSafe": "Safe",
+  "riskInfo": "Info",
+  "riskWarn": "Warning",
+  "riskDanger": "Danger",
+  "securityTips": "Security Tips",
+  "english": "English",
+  "chinese": "繁體中文",
+  "devicesFound": "{count} devices found",
+  "@devicesFound": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "scanError": "Scan error: {error}",
+  "@scanError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "subnetHint": "e.g. 192.168.1.0/24",
+  "nmapPathHint": "e.g. /usr/bin/nmap",
+  "networkSettings": "Network Settings",
+  "appSettings": "App Settings",
+  "online": "Online",
+  "unknown": "Unknown"
+}

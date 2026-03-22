@@ -1,0 +1,69 @@
+{
+  "@@locale": "zh",
+  "appTitle": "網路探索",
+  "scan": "掃描",
+  "cancel": "取消",
+  "scanning": "掃描中...",
+  "settings": "設定",
+  "devices": "裝置",
+  "scanDuration": "掃描完成，耗時 {seconds} 秒",
+  "@scanDuration": {
+    "placeholders": {
+      "seconds": { "type": "String" }
+    }
+  },
+  "noDevicesFound": "未找到裝置",
+  "startScan": "按下掃描以探索裝置",
+  "subnet": "子網路",
+  "nmapPath": "nmap 路徑",
+  "language": "語言",
+  "saveSettings": "儲存設定",
+  "settingsSaved": "設定已儲存",
+  "verifyNmap": "驗證 nmap",
+  "nmapVerified": "nmap 驗證成功",
+  "nmapNotFound": "找不到 nmap",
+  "portScan": "連接埠掃描",
+  "portScanRunning": "連接埠掃描中...",
+  "openPorts": "開放連接埠",
+  "noPorts": "未找到開放連接埠",
+  "port": "連接埠",
+  "service": "服務",
+  "version": "版本",
+  "osDetection": "作業系統偵測",
+  "confidence": "信心度",
+  "cachedResult": "快取結果（{time}）",
+  "@cachedResult": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "logs": "記錄",
+  "collapseLogs": "收起記錄",
+  "expandLogs": "展開記錄",
+  "copied": "已複製！",
+  "riskSafe": "安全",
+  "riskInfo": "資訊",
+  "riskWarn": "警告",
+  "riskDanger": "危險",
+  "securityTips": "安全建議",
+  "english": "English",
+  "chinese": "繁體中文",
+  "devicesFound": "找到 {count} 台裝置",
+  "@devicesFound": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "scanError": "掃描錯誤：{error}",
+  "@scanError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "subnetHint": "例如：192.168.1.0/24",
+  "nmapPathHint": "例如：/usr/bin/nmap",
+  "networkSettings": "網路設定",
+  "appSettings": "應用程式設定",
+  "online": "連線中",
+  "unknown": "未知"
+}

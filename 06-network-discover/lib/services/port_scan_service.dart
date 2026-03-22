@@ -1,0 +1,140 @@
+import 'dart:io';
+import 'package:xml/xml.dart';
+import '../models/port_info.dart';
+
+class ScanProgress {
+  final double? percent;
+  final String? remaining;
+
+  const ScanProgress({this.percent, this.remaining});
+}
+
+class OsMatch {
+  final String name;
+  final int accuracy;
+
+  const OsMatch({required this.name, required this.accuracy});
+}
+
+class PortScanService {
+  Future<List<PortInfo>> scan({
+    required String ip,
+    required String nmapPath,
+    required String sudoPassword,
+    required void Function(String line) onLog,
+    required void Function(PortInfo port) onPort,
+    void Function(ScanProgress progress)? onProgress,
+    void Function(OsMatch os)? onOsDetected,
+  }) async {
+    onLog('Starting port scan on $ip');
+
+    final process = await Process.start('sudo', [
+      '-S',
+      nmapPath,
+      '-sV',
+      '-O',
+      '--open',
+      '-T4',
+      '--stats-every',
+      '2s',
+      '-oX',
+      '-',
+      ip,
+    ]);
+
+    process.stdin.write('$sudoPassword\n');
+    await process.stdin.flush();
+
+    final xmlBuffer = StringBuffer();
+    final ports = <PortInfo>[];
+
+    process.stdout.transform(const SystemEncoding().decoder).listen((chunk) {
+      xmlBuffer.write(chunk);
+    });
+
+    process.stderr.transform(const SystemEncoding().decoder).listen((line) {
+      onLog(line.trim());
+      _parseProgress(line, onProgress);
+    });
+
+    await process.exitCode;
+
+    final xmlStr = xmlBuffer.toString();
+    if (xmlStr.trim().isEmpty) {
+      throw Exception('nmap produced no output');
+    }
+
+    try {
+      final doc = XmlDocument.parse(xmlStr);
+      final host = doc.findAllElements('host').firstOrNull;
+      if (host == null) return ports;
+
+      // OS detection
+      final osMatches = host.findAllElements('osmatch').toList();
+      if (osMatches.isNotEmpty && onOsDetected != null) {
+        final best = osMatches.first;
+        final name = best.getAttribute('name') ?? '';
+        final accuracy = int.tryParse(best.getAttribute('accuracy') ?? '0') ?? 0;
+        onOsDetected(OsMatch(name: name, accuracy: accuracy));
+      }
+
+      // Ports
+      final portElements = host.findAllElements('port').toList()
+        ..sort((a, b) {
+          final pa = int.tryParse(a.getAttribute('portid') ?? '0') ?? 0;
+          final pb = int.tryParse(b.getAttribute('portid') ?? '0') ?? 0;
+          return pa.compareTo(pb);
+        });
+
+      for (final portEl in portElements) {
+        final state = portEl.findElements('state').firstOrNull?.getAttribute('state');
+        if (state != 'open') continue;
+
+        final portNum = int.tryParse(portEl.getAttribute('portid') ?? '');
+        final protocol = portEl.getAttribute('protocol') ?? 'tcp';
+        if (portNum == null) continue;
+
+        final serviceEl = portEl.findElements('service').firstOrNull;
+        final service = serviceEl?.getAttribute('name') ?? 'unknown';
+        final product = serviceEl?.getAttribute('product');
+        final version = serviceEl?.getAttribute('version');
+
+        final portInfo = PortInfo(
+          port: portNum,
+          protocol: protocol,
+          state: 'open',
+          service: service,
+          product: product,
+          version: version,
+        );
+        ports.add(portInfo);
+        onPort(portInfo);
+        onLog('Port $portNum/$protocol open - $service');
+      }
+    } catch (e) {
+      throw Exception('Failed to parse nmap output: $e');
+    }
+
+    onLog('Port scan complete. Found ${ports.length} open ports');
+    return ports;
+  }
+
+  void _parseProgress(String line, void Function(ScanProgress)? onProgress) {
+    if (onProgress == null) return;
+    // "About 13.11% done; ETC: 06:55 (0:01:06 remaining)"
+    final percentIdx = line.indexOf('%');
+    if (percentIdx < 0) return;
+    final aboutIdx = line.lastIndexOf(' ', percentIdx - 1);
+    if (aboutIdx < 0) return;
+    final percentStr = line.substring(aboutIdx + 1, percentIdx);
+    final percent = double.tryParse(percentStr);
+
+    String? remaining;
+    final remMatch = RegExp(r'\(([^)]+remaining)\)').firstMatch(line);
+    if (remMatch != null) remaining = remMatch.group(1);
+
+    if (percent != null) {
+      onProgress(ScanProgress(percent: percent / 100, remaining: remaining));
+    }
+  }
+}
