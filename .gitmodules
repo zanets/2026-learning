@@ -13,3 +13,6 @@
 [submodule "05-local-network-discover"]
 	path = 05-local-network-discover
 	url = git@github.com:zanets/05-local-network-discover.git
+[submodule "06-network-discover"]
+	path = 06-network-discover
+	url = git@github.com:zanets/network-discover.git
