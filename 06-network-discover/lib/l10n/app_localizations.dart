@@ -439,6 +439,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unknown'**
   String get unknown;
+
+  /// No description provided for @topology.
+  ///
+  /// In en, this message translates to:
+  /// **'Topology'**
+  String get topology;
+
+  /// No description provided for @ports.
+  ///
+  /// In en, this message translates to:
+  /// **'Ports'**
+  String get ports;
+
+  /// No description provided for @httpHeaders.
+  ///
+  /// In en, this message translates to:
+  /// **'HTTP Headers'**
+  String get httpHeaders;
+
+  /// No description provided for @scanPortsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan open ports on this device'**
+  String get scanPortsHint;
+
+  /// No description provided for @reScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-scan'**
+  String get reScan;
+
+  /// No description provided for @fetchHeaders.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch Headers'**
+  String get fetchHeaders;
+
+  /// No description provided for @reFetch.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-fetch'**
+  String get reFetch;
+
+  /// No description provided for @httpProbeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Probe HTTP/HTTPS ports for server headers'**
+  String get httpProbeHint;
+
+  /// No description provided for @noWebService.
+  ///
+  /// In en, this message translates to:
+  /// **'No web service responded'**
+  String get noWebService;
+
+  /// No description provided for @portsResponded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} port(s) responded'**
+  String portsResponded(int count);
 }
 
 class _AppLocalizationsDelegate

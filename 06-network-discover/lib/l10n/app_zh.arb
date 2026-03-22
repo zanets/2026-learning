@@ -77,5 +77,20 @@
   "portScanTimeout": "連接埠掃描逾時（秒）",
   "appSettings": "應用程式設定",
   "online": "連線中",
-  "unknown": "未知"
+  "unknown": "未知",
+  "topology": "網路拓撲",
+  "ports": "連接埠",
+  "httpHeaders": "HTTP 標頭",
+  "scanPortsHint": "掃描此裝置的開放連接埠",
+  "reScan": "重新掃描",
+  "fetchHeaders": "取得標頭",
+  "reFetch": "重新取得",
+  "httpProbeHint": "探測 HTTP/HTTPS 連接埠以取得伺服器標頭",
+  "noWebService": "無 Web 服務回應",
+  "portsResponded": "{count} 個連接埠有回應",
+  "@portsResponded": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  }
 }

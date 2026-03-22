@@ -186,4 +186,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unknown => 'Unknown';
+
+  @override
+  String get topology => 'Topology';
+
+  @override
+  String get ports => 'Ports';
+
+  @override
+  String get httpHeaders => 'HTTP Headers';
+
+  @override
+  String get scanPortsHint => 'Scan open ports on this device';
+
+  @override
+  String get reScan => 'Re-scan';
+
+  @override
+  String get fetchHeaders => 'Fetch Headers';
+
+  @override
+  String get reFetch => 'Re-fetch';
+
+  @override
+  String get httpProbeHint => 'Probe HTTP/HTTPS ports for server headers';
+
+  @override
+  String get noWebService => 'No web service responded';
+
+  @override
+  String portsResponded(int count) {
+    return '$count port(s) responded';
+  }
 }

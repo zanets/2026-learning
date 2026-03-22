@@ -77,5 +77,20 @@
   "portScanTimeout": "Port Scan Timeout (s)",
   "appSettings": "App Settings",
   "online": "Online",
-  "unknown": "Unknown"
+  "unknown": "Unknown",
+  "topology": "Topology",
+  "ports": "Ports",
+  "httpHeaders": "HTTP Headers",
+  "scanPortsHint": "Scan open ports on this device",
+  "reScan": "Re-scan",
+  "fetchHeaders": "Fetch Headers",
+  "reFetch": "Re-fetch",
+  "httpProbeHint": "Probe HTTP/HTTPS ports for server headers",
+  "noWebService": "No web service responded",
+  "portsResponded": "{count} port(s) responded",
+  "@portsResponded": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  }
 }

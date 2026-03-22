@@ -186,4 +186,36 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get unknown => '未知';
+
+  @override
+  String get topology => '網路拓撲';
+
+  @override
+  String get ports => '連接埠';
+
+  @override
+  String get httpHeaders => 'HTTP 標頭';
+
+  @override
+  String get scanPortsHint => '掃描此裝置的開放連接埠';
+
+  @override
+  String get reScan => '重新掃描';
+
+  @override
+  String get fetchHeaders => '取得標頭';
+
+  @override
+  String get reFetch => '重新取得';
+
+  @override
+  String get httpProbeHint => '探測 HTTP/HTTPS 連接埠以取得伺服器標頭';
+
+  @override
+  String get noWebService => '無 Web 服務回應';
+
+  @override
+  String portsResponded(int count) {
+    return '$count 個連接埠有回應';
+  }
 }
