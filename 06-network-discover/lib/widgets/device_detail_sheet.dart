@@ -105,30 +105,6 @@ class _DeviceDetailSheetState extends ConsumerState<DeviceDetailSheet>
                         fontFamily: 'monospace',
                       ),
                     ),
-                    const Spacer(),
-                    // Scan / cancel button
-                    FilledButton.icon(
-                      onPressed: scanState.isScanning
-                          ? () => ref
-                              .read(portScanProvider(device.ip).notifier)
-                              .cancel()
-                          : _startScan,
-                      icon: Icon(
-                        scanState.isScanning ? Icons.stop : Icons.radar,
-                        size: 16,
-                      ),
-                      label: Text(
-                        scanState.isScanning ? l10n.cancel : l10n.portScan,
-                      ),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: scanState.isScanning
-                            ? AppColors.danger
-                            : AppColors.accentDim,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
-                      ),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -170,10 +146,10 @@ class _DeviceDetailSheetState extends ConsumerState<DeviceDetailSheet>
               length: 2,
               child: Column(
                 children: [
-                  const TabBar(
+                  TabBar(
                     tabs: [
-                      Tab(text: 'Ports'),
-                      Tab(text: 'HTTP Headers'),
+                      Tab(text: l10n.ports),
+                      Tab(text: l10n.httpHeaders),
                     ],
                     labelColor: AppColors.accent,
                     unselectedLabelColor: AppColors.textSecondary,
@@ -184,35 +160,22 @@ class _DeviceDetailSheetState extends ConsumerState<DeviceDetailSheet>
                     child: TabBarView(
                       children: [
                         // ── Port scan tab ──
-                        scanState.isScanning
-                            ? _ScanningView(
-                                progress: scanState.progress,
-                                remaining: scanState.remaining,
-                                ports: scanState.ports,
-                                spinController: _spinController,
-                                logs: scanState.logs,
-                                l10n: l10n,
-                              )
-                            : scanState.ports.isNotEmpty
-                                ? _PortListView(
-                                    ports: scanState.ports,
-                                    cached: scanState.cached,
-                                    logs: scanState.logs,
-                                    l10n: l10n,
-                                  )
-                                : scanState.cached != null
-                                    ? _PortListView(
-                                        ports: scanState.cached!.ports,
-                                        cached: scanState.cached,
-                                        logs: scanState.logs,
-                                        l10n: l10n,
-                                      )
-                                    : _EmptyPortView(l10n: l10n),
+                        _PortScanTab(
+                          state: scanState,
+                          spinController: _spinController,
+                          l10n: l10n,
+                          onScan: _startScan,
+                          onCancel: () => ref
+                              .read(portScanProvider(device.ip).notifier)
+                              .cancel(),
+                          onRescan: _startScan,
+                        ),
 
                         // ── HTTP headers tab ──
                         _HttpHeaderView(
                           ip: device.ip,
                           state: httpState,
+                          l10n: l10n,
                           onFetch: () => ref
                               .read(httpHeaderProvider(device.ip).notifier)
                               .fetch(),
@@ -272,9 +235,62 @@ class _Chip extends StatelessWidget {
   }
 }
 
+// ── Port scan tab wrapper ─────────────────────────────────────────────────────
+
+class _PortScanTab extends StatelessWidget {
+  final PortScanState state;
+  final AnimationController spinController;
+  final AppLocalizations l10n;
+  final VoidCallback onScan;
+  final VoidCallback onCancel;
+  final VoidCallback onRescan;
+
+  const _PortScanTab({
+    required this.state,
+    required this.spinController,
+    required this.l10n,
+    required this.onScan,
+    required this.onCancel,
+    required this.onRescan,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (state.isScanning) {
+      return _ScanningView(
+        progress: state.progress,
+        remaining: state.remaining,
+        ports: state.ports,
+        spinController: spinController,
+        logs: state.logs,
+        l10n: l10n,
+        onCancel: onCancel,
+      );
+    }
+
+    final ports = state.ports.isNotEmpty
+        ? state.ports
+        : state.cached?.ports;
+
+    if (ports != null && ports.isNotEmpty) {
+      return _PortListView(
+        ports: ports,
+        cached: state.cached,
+        logs: state.logs,
+        l10n: l10n,
+        onRescan: onRescan,
+      );
+    }
+
+    return _EmptyPortView(l10n: l10n, onScan: onScan);
+  }
+}
+
 class _EmptyPortView extends StatelessWidget {
   final AppLocalizations l10n;
-  const _EmptyPortView({required this.l10n});
+  final VoidCallback onScan;
+
+  const _EmptyPortView({required this.l10n, required this.onScan});
 
   @override
   Widget build(BuildContext context) {
@@ -282,10 +298,22 @@ class _EmptyPortView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.scanner, size: 48, color: AppColors.textSecondary),
+          const Icon(Icons.radar, size: 48, color: AppColors.textSecondary),
           const SizedBox(height: 12),
-          Text(l10n.portScan,
-              style: const TextStyle(color: AppColors.textSecondary)),
+          Text(
+            l10n.scanPortsHint,
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: onScan,
+            icon: const Icon(Icons.search, size: 16),
+            label: Text(l10n.portScan),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.accent,
+              side: const BorderSide(color: AppColors.border),
+            ),
+          ),
         ],
       ),
     );
@@ -299,6 +327,7 @@ class _ScanningView extends StatelessWidget {
   final AnimationController spinController;
   final List<String> logs;
   final AppLocalizations l10n;
+  final VoidCallback onCancel;
 
   const _ScanningView({
     required this.progress,
@@ -307,6 +336,7 @@ class _ScanningView extends StatelessWidget {
     required this.spinController,
     required this.logs,
     required this.l10n,
+    required this.onCancel,
   });
 
   @override
@@ -373,6 +403,16 @@ class _ScanningView extends StatelessWidget {
             style: const TextStyle(color: AppColors.accent, fontSize: 12),
           ),
         ],
+        const SizedBox(height: 16),
+        OutlinedButton.icon(
+          onPressed: onCancel,
+          icon: const Icon(Icons.stop, size: 16),
+          label: Text(l10n.cancel),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.danger,
+            side: const BorderSide(color: AppColors.danger),
+          ),
+        ),
         const Spacer(),
         NmapLogPanel(logs: logs, mini: true),
       ],
@@ -385,12 +425,14 @@ class _PortListView extends StatelessWidget {
   final dynamic cached;
   final List<String> logs;
   final AppLocalizations l10n;
+  final VoidCallback onRescan;
 
   const _PortListView({
     required this.ports,
     required this.cached,
     required this.logs,
     required this.l10n,
+    required this.onRescan,
   });
 
   @override
@@ -417,6 +459,15 @@ class _PortListView extends StatelessWidget {
                       color: AppColors.textSecondary, fontSize: 11),
                 ),
               ],
+              const Spacer(),
+              TextButton.icon(
+                onPressed: onRescan,
+                icon: const Icon(Icons.refresh, size: 14),
+                label: Text(l10n.reScan, style: const TextStyle(fontSize: 12)),
+                style: TextButton.styleFrom(
+                    foregroundColor: AppColors.accent,
+                    padding: EdgeInsets.zero),
+              ),
             ],
           ),
         ),
@@ -629,11 +680,13 @@ class _HttpHeaderView extends StatelessWidget {
   final String ip;
   final HttpHeaderState state;
   final VoidCallback onFetch;
+  final AppLocalizations l10n;
 
   const _HttpHeaderView({
     required this.ip,
     required this.state,
     required this.onFetch,
+    required this.l10n,
   });
 
   @override
@@ -651,16 +704,16 @@ class _HttpHeaderView extends StatelessWidget {
           children: [
             const Icon(Icons.http, size: 48, color: AppColors.textSecondary),
             const SizedBox(height: 12),
-            const Text(
-              'Probe HTTP/HTTPS ports for server headers',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            Text(
+              l10n.httpProbeHint,
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
             OutlinedButton.icon(
               onPressed: onFetch,
               icon: const Icon(Icons.send_outlined, size: 16),
-              label: const Text('Fetch Headers'),
+              label: Text(l10n.fetchHeaders),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.accent,
                 side: const BorderSide(color: AppColors.border),
@@ -678,7 +731,7 @@ class _HttpHeaderView extends StatelessWidget {
           child: Row(
             children: [
               Text(
-                '${state.results.length} port(s) responded',
+                l10n.portsResponded(state.results.length),
                 style: const TextStyle(
                     color: AppColors.textSecondary, fontSize: 12),
               ),
@@ -686,7 +739,7 @@ class _HttpHeaderView extends StatelessWidget {
               TextButton.icon(
                 onPressed: onFetch,
                 icon: const Icon(Icons.refresh, size: 14),
-                label: const Text('Re-fetch', style: TextStyle(fontSize: 12)),
+                label: Text(l10n.reFetch, style: const TextStyle(fontSize: 12)),
                 style: TextButton.styleFrom(
                     foregroundColor: AppColors.accent,
                     padding: EdgeInsets.zero),
@@ -703,10 +756,10 @@ class _HttpHeaderView extends StatelessWidget {
           ),
         Expanded(
           child: state.results.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text(
-                    'No web service responded',
-                    style: TextStyle(color: AppColors.textSecondary),
+                    l10n.noWebService,
+                    style: const TextStyle(color: AppColors.textSecondary),
                   ),
                 )
               : ListView.builder(
