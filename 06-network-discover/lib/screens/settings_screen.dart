@@ -141,6 +141,63 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     hintText: l10n.nmapPathHint,
                   ),
                 ),
+                const SizedBox(height: 8),
+                // Candidate path chips
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: kNmapCandidates.map((path) {
+                    final exists = File(path).existsSync();
+                    final selected = _nmapCtrl.text.trim() == path;
+                    return GestureDetector(
+                      onTap: () => setState(() => _nmapCtrl.text = path),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: selected
+                              ? AppColors.accent.withValues(alpha: 0.15)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: selected
+                                ? AppColors.accent
+                                : exists
+                                    ? AppColors.success.withValues(alpha: 0.5)
+                                    : AppColors.border,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              exists
+                                  ? Icons.check_circle_outline
+                                  : Icons.radio_button_unchecked,
+                              size: 11,
+                              color: exists
+                                  ? AppColors.success
+                                  : AppColors.textSecondary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              path,
+                              style: TextStyle(
+                                fontFamily: 'monospace',
+                                fontSize: 11,
+                                color: selected
+                                    ? AppColors.accent
+                                    : exists
+                                        ? AppColors.textPrimary
+                                        : AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
                 const SizedBox(height: 10),
                 Row(
                   children: [
