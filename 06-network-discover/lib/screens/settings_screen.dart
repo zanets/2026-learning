@@ -16,6 +16,7 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late TextEditingController _subnetCtrl;
   late TextEditingController _nmapCtrl;
+  String? _pendingLocale;
   bool _saved = false;
   String? _nmapStatus;
   bool _verifying = false;
@@ -26,6 +27,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final settings = ref.read(settingsProvider);
     _subnetCtrl = TextEditingController(text: settings.subnet);
     _nmapCtrl = TextEditingController(text: settings.nmapPath);
+    _pendingLocale = settings.localeCode;
   }
 
   @override
@@ -41,6 +43,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           settings.copyWith(
             subnet: _subnetCtrl.text.trim(),
             nmapPath: _nmapCtrl.text.trim(),
+            localeCode: _pendingLocale,
+            clearLocale: _pendingLocale == null,
           ),
         );
     setState(() => _saved = true);
@@ -72,8 +76,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final settings = ref.watch(settingsProvider);
-    final currentLocale = settings.localeCode;
+    ref.watch(settingsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -94,16 +97,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               children: [
                 _LangButton(
                   label: l10n.english,
-                  selected: currentLocale == 'en' || currentLocale == null,
-                  onTap: () =>
-                      ref.read(settingsProvider.notifier).updateLocale('en'),
+                  selected: _pendingLocale == 'en' || _pendingLocale == null,
+                  onTap: () => setState(() => _pendingLocale = 'en'),
                 ),
                 const SizedBox(width: 8),
                 _LangButton(
                   label: l10n.chinese,
-                  selected: currentLocale == 'zh',
-                  onTap: () =>
-                      ref.read(settingsProvider.notifier).updateLocale('zh'),
+                  selected: _pendingLocale == 'zh',
+                  onTap: () => setState(() => _pendingLocale = 'zh'),
                 ),
               ],
             ),
