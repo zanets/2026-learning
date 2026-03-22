@@ -17,6 +17,9 @@ Future<void> main() async {
   // Initialize Hive
   await HiveService.init();
 
+  // Detect local subnet from default route (macOS)
+  await initDetectedSubnet();
+
   runApp(
     const ProviderScope(
       child: NetworkDiscoverApp(),
